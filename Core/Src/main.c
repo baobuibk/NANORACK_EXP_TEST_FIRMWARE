@@ -42,12 +42,15 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+SPI_HandleTypeDef hspi2;
+
 /* USER CODE BEGIN PV */
 MCP4902_Device_t DAC_device;
 ADG1414_Device_t laser_int;
 ADG1414_Device_t laser_ext;
 ADC_DMA_Device_t laser_adc;
 ADG1414_Device_t photo_sw;
+ADS8327_Device_t photo_adc;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,6 +60,7 @@ static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -89,6 +93,7 @@ void Status_Led(void*)
 {
 	LL_GPIO_TogglePin(GPIOE, LL_GPIO_PIN_11);
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -105,14 +110,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
-  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
-
-  /* System interrupt init*/
-  NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-
-  /* SysTick_IRQn interrupt configuration */
-  NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),15, 0));
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -131,6 +129,7 @@ int main(void)
   MX_SPI1_Init();
   MX_USART6_UART_Init();
   MX_ADC1_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 
   MCP4902_Device_Init(&DAC_device, SPI1, MCP4902_CS_GPIO_Port, MCP4902_CS_Pin, MCP4902_LATCH_GPIO_Port, MCP4902_LATCH_Pin);
@@ -140,23 +139,13 @@ int main(void)
 
   ADC_DMA_Init(&laser_adc, ADC1, DMA2, LL_DMA_STREAM_0, 2);
 
+  ADG1414_Chain_Init(&photo_sw, SPI2, PD_SW_CS_GPIO_Port, PD_SW_CS_Pin, INTERNAL_CHAIN_SWITCH_NUM);
+  ADS8327_Device_Init(&photo_adc, SPI2, PD_ADC_CS_GPIO_Port, PD_ADC_CS_Pin, PD_ADC_CV_GPIO_Port, PD_ADC_CV_Pin, PD_ADC_EOC_GPIO_Port, PD_ADC_EOC_Pin);
+  //  ADG1414_Chain_SwitchOn(&photo_sw, 1);
+  ADS8327_Read_Data_Polling(&photo_adc, 1000);
   SchedulerInit(1000);
   command_init();
 
-
-//  ADG1414_Chain_Init(&photo_sw, SPI2, PD_SW_CS_GPIO_Port, PD_SW_CS_Pin, INTERNAL_CHAIN_SWITCH_NUM);
-//  ADG1414_Chain_SwitchOn(&photo_sw, 1);
-//  ADS8327_Device_Init(&adc_dev, SPI2, PD_ADS_CS_GPIO_Port, PD_ADS_CS_Pin, PD_ADS_CV_GPIO_Port, PD_ADS_CV_Pin, PD_EOC_GPIO_Port, PD_EOC_Pin);
-
-
-//  MCP4902_Set_Voltage(&DAC_device, MCP4902_CHA, 10);
-//  MCP4902_Set_Voltage(&DAC_device, MCP4902_CHB, 100);
-//
-//  ADG1414_Chain_SwitchOn(&laser_int, 2);
-//  ADG1414_Chain_SwitchOn(&laser_ext, 1);
-//  LL_mDelay(1000);
-//  ADG1414_Chain_SwitchOn(&laser_int, 30);
-//  ADG1414_Chain_SwitchOn(&laser_ext, 8);
 
   /* USER CODE END 2 */
 
@@ -168,8 +157,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  SchedulerRun();
-//	  ADS8327_Read_Data_Polling(&adc_dev, 100);
-//	  LL_mDelay(10);
+//	  ADS8327_Read_Data_Polling(&photo_adc, 1000);
   }
   /* USER CODE END 3 */
 }
@@ -213,8 +201,13 @@ void SystemClock_Config(void)
   {
 
   }
-  LL_Init1msTick(168000000);
   LL_SetSystemCoreClock(168000000);
+
+   /* Update the time base */
+  if (HAL_InitTick (TICK_INT_PRIORITY) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /**
@@ -361,6 +354,44 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
   * @brief USART6 Initialization Function
   * @param None
   * @retval None
@@ -447,10 +478,15 @@ static void MX_GPIO_Init(void)
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOH);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOE);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
 
   /**/
   LL_GPIO_ResetOutputPin(STATUS_LED_GPIO_Port, STATUS_LED_Pin);
+
+  /**/
+  LL_GPIO_ResetOutputPin(GPIOD, PD_SW_CS_Pin|PD_ADC_CS_Pin|PD_ADC_CV_Pin);
 
   /**/
   LL_GPIO_SetOutputPin(GPIOE, MCP4902_CS_Pin|ADG1414_EXT_CS_Pin|ADG1414_INT_CS_Pin|MCP4902_LATCH_Pin);
@@ -470,6 +506,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(MCP4902_CS_GPIO_Port, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = PD_SW_CS_Pin|PD_ADC_CS_Pin|PD_ADC_CV_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /**/
+  GPIO_InitStruct.Pin = PD_ADC_EOC_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(PD_ADC_EOC_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */

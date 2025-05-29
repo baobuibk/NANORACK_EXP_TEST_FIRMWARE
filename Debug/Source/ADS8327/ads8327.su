@@ -1,0 +1,17 @@
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_spi.h:297:22:LL_SPI_Enable	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_spi.h:320:26:LL_SPI_IsEnabled	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_spi.h:731:26:LL_SPI_IsActiveFlag_RXNE	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_spi.h:742:26:LL_SPI_IsActiveFlag_TXE	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_spi.h:793:26:LL_SPI_IsActiveFlag_BSY	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_spi.h:1075:25:LL_SPI_ReceiveData8	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_spi.h:1098:22:LL_SPI_TransmitData8	24	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:800:26:LL_GPIO_IsInputPinSet	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:881:22:LL_GPIO_SetOutputPin	16	static
+../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_gpio.h:910:22:LL_GPIO_ResetOutputPin	16	static
+../Source/ADS8327/ads8327.c:11:13:ADS8327_Transmit16	16	static
+../Source/ADS8327/ads8327.c:27:17:ADS8327_Receive16	24	static
+../Source/ADS8327/ads8327.c:51:6:ADS8327_Wake_Up	16	static
+../Source/ADS8327/ads8327.c:61:6:ADS8327_Write_CFR	24	static
+../Source/ADS8327/ads8327.c:75:6:ADS8327_Default_CFR	16	static
+../Source/ADS8327/ads8327.c:93:10:ADS8327_Read_Data_Polling	24	static
+../Source/ADS8327/ads8327.c:114:6:ADS8327_Device_Init	24	static,ignoring_inline_asm

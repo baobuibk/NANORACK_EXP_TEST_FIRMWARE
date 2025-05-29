@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal.h"
 #include "stm32f4xx_ll_adc.h"
 #include "stm32f4xx_ll_dma.h"
 #include "stm32f4xx_ll_rcc.h"
@@ -40,15 +41,12 @@ extern "C" {
 #include "stm32f4xx_ll_usart.h"
 #include "stm32f4xx_ll_gpio.h"
 
-#if defined(USE_FULL_ASSERT)
-#include "stm32_assert.h"
-#endif /* USE_FULL_ASSERT */
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "adg1414.h"
 #include "mcp4902.h"
 #include "adc_dma_device.h"
+#include "ads8327.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -58,6 +56,7 @@ extern ADG1414_Device_t laser_int;
 extern ADG1414_Device_t laser_ext;
 extern ADC_DMA_Device_t laser_adc;
 extern ADG1414_Device_t photo_sw;
+extern ADS8327_Device_t photo_adc;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -92,18 +91,20 @@ void Error_Handler(void);
 #define ADG1414_INT_CS_GPIO_Port GPIOE
 #define MCP4902_LATCH_Pin LL_GPIO_PIN_15
 #define MCP4902_LATCH_GPIO_Port GPIOE
-#ifndef NVIC_PRIORITYGROUP_0
-#define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
-                                                                 4 bits for subpriority */
-#define NVIC_PRIORITYGROUP_1         ((uint32_t)0x00000006) /*!< 1 bit  for pre-emption priority,
-                                                                 3 bits for subpriority */
-#define NVIC_PRIORITYGROUP_2         ((uint32_t)0x00000005) /*!< 2 bits for pre-emption priority,
-                                                                 2 bits for subpriority */
-#define NVIC_PRIORITYGROUP_3         ((uint32_t)0x00000004) /*!< 3 bits for pre-emption priority,
-                                                                 1 bit  for subpriority */
-#define NVIC_PRIORITYGROUP_4         ((uint32_t)0x00000003) /*!< 4 bits for pre-emption priority,
-                                                                 0 bit  for subpriority */
-#endif
+#define PD_SCK_Pin LL_GPIO_PIN_13
+#define PD_SCK_GPIO_Port GPIOB
+#define PD_MISO_Pin LL_GPIO_PIN_14
+#define PD_MISO_GPIO_Port GPIOB
+#define PD_MOSI_Pin LL_GPIO_PIN_15
+#define PD_MOSI_GPIO_Port GPIOB
+#define PD_SW_CS_Pin LL_GPIO_PIN_9
+#define PD_SW_CS_GPIO_Port GPIOD
+#define PD_ADC_CS_Pin LL_GPIO_PIN_10
+#define PD_ADC_CS_GPIO_Port GPIOD
+#define PD_ADC_CV_Pin LL_GPIO_PIN_11
+#define PD_ADC_CV_GPIO_Port GPIOD
+#define PD_ADC_EOC_Pin LL_GPIO_PIN_8
+#define PD_ADC_EOC_GPIO_Port GPIOC
 
 /* USER CODE BEGIN Private defines */
 

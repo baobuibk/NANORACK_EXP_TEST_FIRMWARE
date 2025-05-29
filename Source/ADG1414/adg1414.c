@@ -19,6 +19,7 @@ static void ADG1414_Chain_Write(ADG1414_Device_t *dev)
         LL_SPI_TransmitData8(dev->spi, dev->switch_state[i]);
         while (!LL_SPI_IsActiveFlag_TXE(dev->spi));  // Đợi TXE
         while (LL_SPI_IsActiveFlag_BSY(dev->spi));   // Đợi BSY
+        (void)LL_SPI_ReceiveData8(dev->spi);
     }
 
     LL_GPIO_SetOutputPin(dev->cs_port, dev->cs_pin);

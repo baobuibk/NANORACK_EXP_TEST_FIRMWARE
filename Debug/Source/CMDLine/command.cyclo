@@ -1,8 +1,9 @@
-../Source/CMDLine/command.c:29:6:command_init	1
-../Source/CMDLine/command.c:45:8:ftoa	16
-../Source/CMDLine/command.c:108:9:Map	1
-../Source/CMDLine/command.c:113:6:command_task_update	9
-../Source/CMDLine/command.c:149:5:Cmd_help	2
-../Source/CMDLine/command.c:179:5:Cmd_set_laser	21
-../Source/CMDLine/command.c:237:14:cur_cal	1
-../Source/CMDLine/command.c:244:5:Cmd_get_current	5
+../Source/CMDLine/command.c:30:6:command_init	1
+../Source/CMDLine/command.c:46:8:ftoa	16
+../Source/CMDLine/command.c:109:9:Map	1
+../Source/CMDLine/command.c:114:6:command_task_update	9
+../Source/CMDLine/command.c:150:5:Cmd_help	2
+../Source/CMDLine/command.c:180:5:Cmd_set_laser	21
+../Source/CMDLine/command.c:238:14:cur_cal	1
+../Source/CMDLine/command.c:245:5:Cmd_get_current	5
+../Source/CMDLine/command.c:268:5:Cmd_pd_get	3

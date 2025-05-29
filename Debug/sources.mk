@@ -29,6 +29,7 @@ Core/Startup \
 Drivers/STM32F4xx_HAL_Driver/Src \
 Source/ADC_DMA_Device \
 Source/ADG1414 \
+Source/ADS8327 \
 Source/CMDLine \
 Source/MCP4902 \
 Source/UART \

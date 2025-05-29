@@ -26,4 +26,5 @@ int	Cmd_help(int argc, char *argv[]);
 char * ftoa(double f, char * buf, int precision);
 int Cmd_set_laser(int argc, char *argv[]);
 int Cmd_get_current(int argc, char *argv[]);
+int Cmd_pd_get(int argc, char *argv[]);
 #endif /* COMMAND_H_ */

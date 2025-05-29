@@ -18,6 +18,7 @@ const char * ErrorCode[5] = {"\r\nOK\r\n", "\r\nCMDLINE_BAD_CMD\r\n", "\r\nCMDLI
 tCmdLineEntry g_psCmdTable[] = {{ "help", Cmd_help, " : format: help"},					
 								{"set_laser", Cmd_set_laser , " : format: set_laser [int/ext] [laser_index] [dac_val]"},
 								{"get_current", Cmd_get_current , " : format: get_current [int/ext]"},
+								{"pd_get", Cmd_pd_get , " : format: pd_get [pd_index]"},
 								{0,0,0}
 								};
 
@@ -262,3 +263,22 @@ int Cmd_get_current(int argc, char *argv[])
 	else return CMDLINE_INVALID_ARG;
 	return CMDLINE_OK;
 }
+
+
+int Cmd_pd_get(int argc, char *argv[])
+{
+	if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+
+	uint8_t pd_ind = atoi(argv[1]);
+
+	ADG1414_Chain_SwitchOn(&photo_sw, pd_ind);
+	LL_mDelay(10);
+	ADS8327_Read_Data_Polling(&photo_adc, 1000);
+	UARTprintf("PD_index[%d]: %d", pd_ind, (uint16_t)photo_adc.ADC_val);
+	return CMDLINE_OK;
+}
+
+
+
+
