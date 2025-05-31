@@ -309,6 +309,7 @@ int Cmd_pd_get(int argc, char *argv[])
 	if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
 
 	uint8_t pd_ind = atoi(argv[1]);
+	if((pd_ind < 1) || (pd_ind > 36)) return CMDLINE_INVALID_ARG;
 
 	SPI_SetDataLength(SPI2, LL_SPI_DATAWIDTH_8BIT);
 	SPI_SetPrescaler(SPI2, LL_SPI_BAUDRATEPRESCALER_DIV16);
@@ -333,6 +334,9 @@ int Cmd_sample_set(int argc, char *argv[])
 	uint8_t pd_ind = atoi(argv[1]);
 	uint32_t sp_rate = atoi(argv[2]);
 
+	if((pd_ind < 1) || (pd_ind > 36)) return CMDLINE_INVALID_ARG;
+	if((sp_rate < 1) || (sp_rate > 330000)) return CMDLINE_INVALID_ARG;
+
 	SPI_SetDataLength(SPI2, LL_SPI_DATAWIDTH_8BIT);
 	SPI_SetPrescaler(SPI2, LL_SPI_BAUDRATEPRESCALER_DIV16);
 	ADG1414_Chain_SwitchOn(&photo_sw, pd_ind);
@@ -353,8 +357,10 @@ int Cmd_sample_trig(int argc, char *argv[])
 	if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
 	if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
 	uint32_t num_sample = atoi(argv[1]);
-	// Prepare to collect data
 
+	if((num_sample < 1) || (num_sample > 50000)) return CMDLINE_INVALID_ARG;
+
+	// Prepare to collect data
 	memset(adc_rec_buf, 0x00, adc_rec_total * 2);		//Clear pre buffer
 	adc_ptr = adc_rec_buf;
 	adc_rec_ind = 0;
@@ -394,6 +400,8 @@ int Cmd_sample_get(int argc, char *argv[])
 	uint8_t num_sample = atoi(argv[1]);
 	uint16_t crc_val = 0xffff;
 
+	if((num_sample < 1) || (num_sample > 50000)) return CMDLINE_INVALID_ARG;
+
 	for(uint32_t i = 0; i < num_sample; i++)
 	{
 		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
@@ -417,6 +425,9 @@ int Cmd_sample_get_char(int argc, char *argv[])
 	}
 	uint8_t num_sample = atoi(argv[1]);
 	uint16_t crc_val = 0xffff;
+
+	if((num_sample < 1) || (num_sample > 50000)) return CMDLINE_INVALID_ARG;
+
 	char ascii_buf[5];
 
 	for(uint32_t i = 0; i < num_sample; i++)

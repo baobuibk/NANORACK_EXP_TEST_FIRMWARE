@@ -15,8 +15,8 @@
 ../Source/CMDLine/command.c:276:14:cur_cal	24	static
 ../Source/CMDLine/command.c:283:5:Cmd_get_current	40	static
 ../Source/CMDLine/command.c:306:5:Cmd_pd_get	24	static
-../Source/CMDLine/command.c:328:5:Cmd_sample_set	32	static
-../Source/CMDLine/command.c:351:5:Cmd_sample_trig	24	static
-../Source/CMDLine/command.c:373:5:Cmd_sample_status_get	16	static
-../Source/CMDLine/command.c:385:5:Cmd_sample_get	32	static
-../Source/CMDLine/command.c:409:5:Cmd_sample_get_char	32	static
+../Source/CMDLine/command.c:329:5:Cmd_sample_set	32	static
+../Source/CMDLine/command.c:355:5:Cmd_sample_trig	24	static
+../Source/CMDLine/command.c:379:5:Cmd_sample_status_get	16	static
+../Source/CMDLine/command.c:391:5:Cmd_sample_get	32	static
+../Source/CMDLine/command.c:417:5:Cmd_sample_get_char	32	static

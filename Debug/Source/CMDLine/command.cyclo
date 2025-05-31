@@ -14,9 +14,9 @@
 ../Source/CMDLine/command.c:218:5:Cmd_set_laser	21
 ../Source/CMDLine/command.c:276:14:cur_cal	1
 ../Source/CMDLine/command.c:283:5:Cmd_get_current	5
-../Source/CMDLine/command.c:306:5:Cmd_pd_get	3
-../Source/CMDLine/command.c:328:5:Cmd_sample_set	4
-../Source/CMDLine/command.c:351:5:Cmd_sample_trig	3
-../Source/CMDLine/command.c:373:5:Cmd_sample_status_get	4
-../Source/CMDLine/command.c:385:5:Cmd_sample_get	5
-../Source/CMDLine/command.c:409:5:Cmd_sample_get_char	5
+../Source/CMDLine/command.c:306:5:Cmd_pd_get	5
+../Source/CMDLine/command.c:329:5:Cmd_sample_set	8
+../Source/CMDLine/command.c:355:5:Cmd_sample_trig	5
+../Source/CMDLine/command.c:379:5:Cmd_sample_status_get	4
+../Source/CMDLine/command.c:391:5:Cmd_sample_get	6
+../Source/CMDLine/command.c:417:5:Cmd_sample_get_char	6
