@@ -81,9 +81,15 @@ typedef struct {
 	uint16_t CMD;				   // Command
     uint16_t CFR_value;			   // Giá trị thanh ghi Config
     uint16_t ADC_val;			   // Giá trị ADC
+    uint8_t tran_ind;
+    uint8_t buf[2];
 } ADS8327_Device_t;
 
+void ISR_SPI_IRQHandler(ADS8327_Device_t *dev);
+void ISR_TIMTrigger_IRQHandler(ADS8327_Device_t *dev);
 
+void SPI_SetDataLength(SPI_TypeDef *spi, uint32_t DataWidth);
+void SPI_SetPrescaler(SPI_TypeDef *spi, uint32_t Prescaler);
 void ADS8327_Wake_Up(ADS8327_Device_t *dev);
 void ADS8327_Write_CFR(ADS8327_Device_t *dev, uint16_t CFR);
 void ADS8327_Default_CFR(ADS8327_Device_t *dev, CFR_default_t CFR_default);

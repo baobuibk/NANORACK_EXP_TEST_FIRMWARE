@@ -13,19 +13,25 @@
 /* Private typedef -----------------------------------------------------------*/
 
 const char * ErrorCode[5] = {"\r\nOK\r\n", "\r\nCMDLINE_BAD_CMD\r\n", "\r\nCMDLINE_TOO_MANY_ARGS\r\n",
-"\r\nCMDLINE_TOO_FEW_ARGS\r\n", "\r\nCMDLINE_INVALID_ARG\r\n" };
+"\r\nCMDLINE_TOO_FEW_ARGS\r\n", "\r\nCMDLINE_INVALID_ARG\r\n"};
 
 tCmdLineEntry g_psCmdTable[] = {{ "help", Cmd_help, " : format: help"},					
 								{"set_laser", Cmd_set_laser , " : format: set_laser [int/ext] [laser_index] [dac_val]"},
 								{"get_current", Cmd_get_current , " : format: get_current [int/ext]"},
 								{"pd_get", Cmd_pd_get , " : format: pd_get [pd_index]"},
+								{"sp_set", Cmd_sample_set , " : format: sp_set [photo_index] [sampling_rate]"},
+								{"sp_trig", Cmd_sample_trig , " : format: sp_trig [num_samples]"},
+								{"sp_status", Cmd_sample_status_get , " : format: sp_status"},
+								{"sp_get", Cmd_sample_get , " : format: sp_get [num_samples]"},
+								{"sp_get_c", Cmd_sample_get_char , " : format: sp_get_c [num_samples]"},
 								{0,0,0}
 								};
 
 volatile static	ringbuffer_t *p_CommandRingBuffer;
 static	char s_commandBuffer[COMMAND_MAX_LENGTH];
 static uint8_t	s_commandBufferIndex = 0;
-
+static uint8_t photo_index = 0;
+static uint32_t samp_rate = 0;
 
 void	command_init(void)
 {
@@ -111,6 +117,28 @@ int32_t Map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t 
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+static void crc16_CCITT_update(uint16_t *crc, uint16_t data)
+{
+    uint8_t bytes[2] = {data >> 8, data & 0xFF};
+    for (uint8_t i = 0; i < 2; i++)
+    {
+        *crc ^= bytes[i] << 8;
+        for (uint8_t j = 0; j < 8; j++)
+            *crc = (*crc & 0x8000) ? (*crc << 1) ^ 0x1021 : *crc << 1;
+    }
+}
+
+static void htoa(uint16_t hex_value, char *output)
+{
+    const char hex_chars[] = "0123456789ABCDEF";
+    output[0] = hex_chars[(hex_value >> 12) & 0x0F];
+    output[1] = hex_chars[(hex_value >> 8) & 0x0F];
+    output[2] = hex_chars[(hex_value >> 4) & 0x0F];
+    output[3] = hex_chars[hex_value & 0x0F];
+    output[4] = ' ';
+}
+
+
 void command_task_update(void*)
 {
 	char rxData;
@@ -119,18 +147,28 @@ void command_task_update(void*)
 	{
 		rxData = rbuffer_remove(p_CommandRingBuffer);
 		USART6_send_char(rxData);
-		if ((rxData == '\r') || (rxData == '\n'))		//got a return or new line
+		if ((rxData == '\n') || (rxData == '\r'))		//got a return or new line
 		{
 			if (s_commandBufferIndex > 0)		//if we got the CR or LF at the begining, discard	
 			{
 				s_commandBuffer[s_commandBufferIndex] = 0;
 				s_commandBufferIndex++;
-				ret_val = CmdLineProcess(s_commandBuffer);		
-				s_commandBufferIndex = 0;		
-				USART6_send_string(ErrorCode[ret_val]);
-				USART6_send_string("> ");
+				ret_val = CmdLineProcess(s_commandBuffer);
+				if(!rbuffer_empty(p_CommandRingBuffer))
+				{
+					rbuffer_remove(p_CommandRingBuffer);
+				}
+				s_commandBufferIndex = 0;
+				if(ret_val < 5)
+				{
+					USART6_send_string(ErrorCode[ret_val]);
+					USART6_send_string("> ");
+				}
 			}	
-			else USART6_send_string("\r\n> ");
+			else
+			{
+				if(ret_val < 5)	USART6_send_string("\r\n> ");
+			}
 		}
 		else if ((rxData == 8) || (rxData == 127))	
 		{
@@ -272,13 +310,126 @@ int Cmd_pd_get(int argc, char *argv[])
 
 	uint8_t pd_ind = atoi(argv[1]);
 
+	SPI_SetDataLength(SPI2, LL_SPI_DATAWIDTH_8BIT);
+	SPI_SetPrescaler(SPI2, LL_SPI_BAUDRATEPRESCALER_DIV16);
 	ADG1414_Chain_SwitchOn(&photo_sw, pd_ind);
+
+	SPI_SetDataLength(SPI2, LL_SPI_DATAWIDTH_16BIT);
+	SPI_SetPrescaler(SPI2, LL_SPI_BAUDRATEPRESCALER_DIV2);
 	LL_mDelay(10);
+
 	ADS8327_Read_Data_Polling(&photo_adc, 1000);
 	UARTprintf("PD_index[%d]: %d", pd_ind, (uint16_t)photo_adc.ADC_val);
 	return CMDLINE_OK;
 }
 
+
+//format: sp_set [photo_index] [sampling_rate]
+int Cmd_sample_set(int argc, char *argv[])
+{
+	if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
+
+	uint8_t pd_ind = atoi(argv[1]);
+	uint32_t sp_rate = atoi(argv[2]);
+
+	SPI_SetDataLength(SPI2, LL_SPI_DATAWIDTH_8BIT);
+	SPI_SetPrescaler(SPI2, LL_SPI_BAUDRATEPRESCALER_DIV16);
+	ADG1414_Chain_SwitchOn(&photo_sw, pd_ind);
+
+	uint32_t AutoReload = ROUND(1000000.0f / sp_rate) - 1;
+	LL_TIM_DisableIT_UPDATE(TIM1);
+	LL_TIM_DisableCounter(TIM1);
+	LL_TIM_SetAutoReload(TIM1, AutoReload);
+
+	photo_index = pd_ind;
+	samp_rate = sp_rate;
+	return CMDLINE_OK;
+}
+
+//format: sp_trig [num_samples]
+int Cmd_sample_trig(int argc, char *argv[])
+{
+	if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+	uint32_t num_sample = atoi(argv[1]);
+	// Prepare to collect data
+
+	memset(adc_rec_buf, 0x00, adc_rec_total * 2);		//Clear pre buffer
+	adc_ptr = adc_rec_buf;
+	adc_rec_ind = 0;
+	adc_rec_total = num_sample;
+	SPI_SetDataLength(SPI2, LL_SPI_DATAWIDTH_16BIT);
+	SPI_SetPrescaler(SPI2, LL_SPI_BAUDRATEPRESCALER_DIV2);
+	// Start collect data
+	LL_TIM_SetCounter(TIM1, 0);
+	LL_TIM_EnableIT_UPDATE(TIM1);  // Bật ngắt Update
+	LL_TIM_EnableCounter(TIM1);    // Bật timer
+
+	return CMDLINE_OK;
+}
+
+//format: sp_status
+int Cmd_sample_status_get(int argc, char *argv[])
+{
+	if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+
+	UARTprintf("Photo: %d   SamplingRate: %d SPS\r\n", photo_index, samp_rate);
+	if(adc_rec_ind == adc_rec_total)	USART6_send_string("-> ADC Data ready to get!");
+	else USART6_send_string("-> ADC Data is not ready!");
+	return CMDLINE_OK;
+}
+
+//format: sp_get [num_samples]
+int Cmd_sample_get(int argc, char *argv[])
+{
+	if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+	if (!adc_rec_ind)
+	{
+		USART6_send_string("Please send cmd 'sp_trig' first!");
+		return CMDLINE_INVALID_ARG;
+	}
+	uint8_t num_sample = atoi(argv[1]);
+	uint16_t crc_val = 0xffff;
+
+	for(uint32_t i = 0; i < num_sample; i++)
+	{
+		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
+		uint8_t bytes_temp[2] = {adc_rec_buf[i] >> 8, adc_rec_buf[i] & 0xFF}; // Big-endian: MSB, LSB
+		USART6_send_array((const char*)bytes_temp, 2);
+	}
+	uint8_t bytes_temp[2] = {crc_val >> 8, crc_val & 0xFF};
+	USART6_send_array((const char*)&bytes_temp, 2);
+	return CMDLINE_NOT_RETURN;
+}
+
+//format: sp_get_c [num_samples]
+int Cmd_sample_get_char(int argc, char *argv[])
+{
+	if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
+	if (!adc_rec_ind)
+	{
+		USART6_send_string("Please send cmd 'sp_trig' first!");
+		return CMDLINE_INVALID_ARG;
+	}
+	uint8_t num_sample = atoi(argv[1]);
+	uint16_t crc_val = 0xffff;
+	char ascii_buf[5];
+
+	for(uint32_t i = 0; i < num_sample; i++)
+	{
+		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
+		htoa(adc_rec_buf[i], ascii_buf);
+		USART6_send_array(ascii_buf, 5);
+	}
+
+	htoa(crc_val, ascii_buf);
+	USART6_send_array(ascii_buf, 5);
+	return CMDLINE_NOT_RETURN;
+}
 
 
 

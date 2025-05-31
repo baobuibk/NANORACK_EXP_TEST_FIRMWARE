@@ -17,6 +17,8 @@
 
 #define	COMMAND_MAX_LENGTH	32
 #define MAX_PRECISION	(2)
+#define ROUND(x) ((x) >= 0 ? (int)(x + 0.5) : (int)(x - 0.5))
+
 
 void command_init(void);
 void command_task_update(void*);
@@ -27,4 +29,10 @@ char * ftoa(double f, char * buf, int precision);
 int Cmd_set_laser(int argc, char *argv[]);
 int Cmd_get_current(int argc, char *argv[]);
 int Cmd_pd_get(int argc, char *argv[]);
+int Cmd_sample_set(int argc, char *argv[]);
+int Cmd_sample_trig(int argc, char *argv[]);
+int Cmd_sample_status_get(int argc, char *argv[]);
+int Cmd_sample_get(int argc, char *argv[]);
+int Cmd_sample_get_char(int argc, char *argv[]);
+
 #endif /* COMMAND_H_ */

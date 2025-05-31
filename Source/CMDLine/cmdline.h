@@ -72,6 +72,12 @@ extern "C"
 #define CMDLINE_INVALID_ARG   (4)
 
 //*****************************************************************************
+//! Defines the value that is returned if an argument is invalid.
+//
+//*****************************************************************************
+#define CMDLINE_NOT_RETURN   (5)
+
+//*****************************************************************************
 //
 // Command line function callback type.
 //
