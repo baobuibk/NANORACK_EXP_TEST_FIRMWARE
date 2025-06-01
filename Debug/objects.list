@@ -18,6 +18,7 @@
 "./Source/ADS8327/ads8327.o"
 "./Source/CMDLine/cmdline.o"
 "./Source/CMDLine/command.o"
+"./Source/FRAM/fram.o"
 "./Source/MCP4902/mcp4902.o"
 "./Source/UART/RingBuffer.o"
 "./Source/UART/UART.o"

@@ -31,6 +31,7 @@ Source/ADC_DMA_Device \
 Source/ADG1414 \
 Source/ADS8327 \
 Source/CMDLine \
+Source/FRAM \
 Source/MCP4902 \
 Source/UART \
 Source/scheduler \

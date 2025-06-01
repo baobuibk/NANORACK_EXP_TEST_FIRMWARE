@@ -168,7 +168,7 @@ void ISR_TIMTrigger_IRQHandler(ADS8327_Device_t *dev)
 		CLEAR_BIT(dev->spi->CR2, SPI_CR2_TXEIE);		//Clear TXE
 		CLEAR_BIT(TIM1->CR1, TIM_CR1_CEN);
 		CLEAR_BIT(TIM1->DIER, TIM_DIER_UIE);
-		UARTprintf("%d samples successfully taken!", adc_rec_ind);
+		UARTprintf("\r\n %d samples successfully taken!\r\n", adc_rec_ind);
 	}
 
 	//	LL_GPIO_SetOutputPin(dev->convst_port, dev->convst_pin);

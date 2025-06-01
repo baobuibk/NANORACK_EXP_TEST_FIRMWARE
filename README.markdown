@@ -130,7 +130,7 @@ Retrieves sampled data from the buffer and outputs it to the console in binary f
   ```
   sp_get 10
   ```
-  Retrieves 10 samples from the buffer and outputs them in binary format (e.g., `{0x12}{0x34}{0x56}{0x78}...`).
+  Retrieves 10 samples from the buffer and outputs them in binary format (big_endian): [`header`(3byte)] [data] with `header` is [0xF000000 | data_len] (e.g., `{F0}{00}{03}{00}{08}{00}{08}{00}{11}{A7}{8C}`).
 - **Notes**:
   - The `num_samples` must be between `1` and `50000`. Values outside this range will cause errors.
 

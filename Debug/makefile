@@ -12,6 +12,7 @@ RM := rm -rf
 -include Source/scheduler/subdir.mk
 -include Source/UART/subdir.mk
 -include Source/MCP4902/subdir.mk
+-include Source/FRAM/subdir.mk
 -include Source/CMDLine/subdir.mk
 -include Source/ADS8327/subdir.mk
 -include Source/ADG1414/subdir.mk

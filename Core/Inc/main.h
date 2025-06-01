@@ -114,6 +114,14 @@ void Error_Handler(void);
 #define PD_ADC_CV_GPIO_Port GPIOD
 #define PD_ADC_EOC_Pin LL_GPIO_PIN_8
 #define PD_ADC_EOC_GPIO_Port GPIOC
+#define FRAM_SCK_Pin LL_GPIO_PIN_10
+#define FRAM_SCK_GPIO_Port GPIOC
+#define FRAM_MISO_Pin LL_GPIO_PIN_11
+#define FRAM_MISO_GPIO_Port GPIOC
+#define FRAM_MOSI_Pin LL_GPIO_PIN_12
+#define FRAM_MOSI_GPIO_Port GPIOC
+#define FRAM_CS_Pin LL_GPIO_PIN_2
+#define FRAM_CS_GPIO_Port GPIOD
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */
