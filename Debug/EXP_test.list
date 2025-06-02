@@ -3957,8 +3957,8 @@ static void MX_USART6_UART_Init(void)
   /* USER CODE BEGIN USART6_Init 1 */
 
   /* USER CODE END USART6_Init 1 */
-  USART_InitStruct.BaudRate = 115200;
- 8001f20:	f44f 33e1 	mov.w	r3, #115200	@ 0x1c200
+  USART_InitStruct.BaudRate = 921600;
+ 8001f20:	f44f 2361 	mov.w	r3, #921600	@ 0xe1000
  8001f24:	61fb      	str	r3, [r7, #28]
   USART_InitStruct.DataWidth = LL_USART_DATAWIDTH_8B;
  8001f26:	2300      	movs	r3, #0
