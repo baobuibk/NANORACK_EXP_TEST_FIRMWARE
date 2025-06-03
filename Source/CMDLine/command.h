@@ -29,10 +29,13 @@ char * ftoa(double f, char * buf, int precision);
 int Cmd_set_laser(int argc, char *argv[]);
 int Cmd_get_current(int argc, char *argv[]);
 int Cmd_pd_get(int argc, char *argv[]);
-int Cmd_sample_set(int argc, char *argv[]);
+int Cmd_sample_set_pd(int argc, char *argv[]);
+int Cmd_sample_set_rate(int argc, char *argv[]);
 int Cmd_sample_trig(int argc, char *argv[]);
 int Cmd_sample_status_get(int argc, char *argv[]);
 int Cmd_sample_get(int argc, char *argv[]);
 int Cmd_sample_get_char(int argc, char *argv[]);
+int Cmd_sample_get_buf(int argc, char *argv[]);
+int Cmd_sample_get_buf_char(int argc, char *argv[]);
 
 #endif /* COMMAND_H_ */

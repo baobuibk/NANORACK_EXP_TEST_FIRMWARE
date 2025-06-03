@@ -74,43 +74,56 @@ Reads the ADC value from a specific photodiode using polling.
 - **Notes**:
   - The `pd_index` must be between `1` and `36`. Values outside this range will cause errors.
 
-### 5. `sp_set`
-Prepares the system for data sampling from a specific photodiode.
+### 5. `sp_set_pd`
+Configures the photodiode to be sampled.
 
-- **Format**: `sp_set [photo_index] [sampling_rate]`
+- **Format**: `sp_set_pd [photo_index]`
 - **Parameters**:
   - `[photo_index]`: The index of the photodiode to sample, ranging from `1` to `36`.
-  - `[sampling_rate]`: The sampling rate in samples per second (SPS), ranging from `1` to `330000`.
-- **Description**: Configures the system to sample data from the specified photodiode at the given sampling rate.
+- **Description**: Sets the specified photodiode for data sampling.
 - **Example**:
   ```
-  sp_set 10 300000
+  sp_set_pd 10
   ```
-  Configures sampling for photodiode 10 at a rate of 300,000 SPS.
+  Configures photodiode 10 for sampling.
 - **Notes**:
-  - The `photo_index` must be between `1` and `36`.
-  - The `sampling_rate` must be between `1` and `330000`. Values outside these ranges will cause errors.
+  - The `photo_index` must be between `1` and `36`. Values outside this range will cause errors.
 
-### 6. `sp_trig`
-Triggers data sampling and stores the samples in a temporary buffer.
+### 6. `sp_set_rate`
+Configures the sampling rate and number of samples for data sampling.
 
-- **Format**: `sp_trig [num_samples]`
+- **Format**: `sp_set_rate [sampling_rate] [num_samples]`
 - **Parameters**:
+  - `[sampling_rate]`: The sampling rate in samples per second (SPS), ranging from `1` to `330000`.
   - `[num_samples]`: The number of samples to collect, ranging from `1` to `50000`.
-- **Description**: Initiates sampling and stores the specified number of samples in a temporary buffer.
+- **Description**: Configures the system to sample data at the specified rate and for the specified number of samples.
 - **Example**:
   ```
-  sp_trig 50
+  sp_set_rate 300000 50
   ```
-  Triggers sampling of 50 samples and stores them in the buffer.
+  Configures sampling at a rate of 300,000 SPS for 50 samples.
 - **Notes**:
-  - The `num_samples` must be between `1` and `50000`. Values outside this range will cause errors.
+  - The `sampling_rate` must be between `1` and `330000`.
+  - The `num_samples` must be between `1` and `50000`. Values outside these ranges will cause errors.
 
-### 7. `sp_status`
+### 7. `sp_trig`
+Triggers data sampling.
+
+- **Format**: `sp_trig`
+- **Description**: Initiates sampling based on the configuration set by `sp_set_pd` and `sp_set_rate`, storing samples in a temporary buffer.
+- **Example**:
+  ```
+  sp_trig
+  ```
+  Triggers sampling based on the previously configured photodiode and sampling rate.
+- **Notes**:
+  - No parameters are required, as the configuration is set by prior commands.
+
+### 8. `sp_status`
 Returns the status of the sampling process.
 
 - **Format**: `sp_status`
-- **Description**: Returns three parameters: the `pd_index` of the photodiode being sampled, the `sampling_rate` in SPS, and the buffer status (indicating whether the data in the buffer is ready to be retrieved using `sp_get` or `sp_get_c`).
+- **Description**: Returns three parameters: the `pd_index` of the photodiode being sampled, the `sampling_rate` in SPS, and the buffer status (indicating whether the data in the buffer is ready to be retrieved using `sp_get`, `sp_get_c`, `sp_get_buf`, or `sp_get_buf_c`).
 - **Example**:
   ```
   sp_status
@@ -119,7 +132,7 @@ Returns the status of the sampling process.
 - **Notes**:
   - No parameters are required.
 
-### 8. `sp_get`
+### 9. `sp_get`
 Retrieves sampled data from the buffer and outputs it to the console in binary format.
 
 - **Format**: `sp_get [num_samples]`
@@ -134,7 +147,7 @@ Retrieves sampled data from the buffer and outputs it to the console in binary f
 - **Notes**:
   - The `num_samples` must be between `1` and `50000`. Values outside this range will cause errors.
 
-### 9. `sp_get_c`
+### 10. `sp_get_c`
 Retrieves sampled data from the buffer and outputs it to the console in ASCII format.
 
 - **Format**: `sp_get_c [num_samples]`
@@ -149,13 +162,15 @@ Retrieves sampled data from the buffer and outputs it to the console in ASCII fo
 - **Notes**:
   - The `num_samples` must be between `1` and `50000`. Values outside this range will cause errors.
 
+
 ## Notes
 - Ensure that the `laser_index` is valid for the specific board configuration (`0` to `36` for `int`, `0` to `8` for `ext`).
 - The `dac_val` must be between `0` and `100`. Values outside this range may cause errors.
 - When using `set_laser` with `laser_index` set to `0`, the `dac_val` parameter is not required.
-- The `pd_index` and `photo_index` for photodiode-related commands (`pd_get`, `sp_set`) must be between `1` and `36`. Values outside this range will cause errors.
-- The `sampling_rate` for `sp_set` must be between `1` and `330000` SPS.
-- The `num_samples` for `sp_trig`, `sp_get`, and `sp_get_c` must be between `1` and `50000`. Values outside this range will cause errors.
+- The `pd_index` and `photo_index` for photodiode-related commands (`pd_get`, `sp_set_pd`) must be between `1` and `36`. Values outside this range will cause errors.
+- The `sampling_rate` for `sp_set_rate` must be between `1` and `330000` SPS.
+- The `num_samples` for `sp_set_rate`, `sp_get`, and `sp_get_c` must be between `1` and `50000`. Values outside this range will cause errors.
 - Commands are case-sensitive and must follow the exact format specified.
+- For `sp_get_buf` and `sp_get_buf_c`, the number of samples retrieved depends on the configuration set by `sp_set_rate`. Please confirm if these commands have specific constraints or behaviors not covered here.
 
 For further assistance, use the `help` command to review the available commands and their syntax.

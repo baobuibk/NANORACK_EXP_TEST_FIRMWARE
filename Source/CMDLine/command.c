@@ -19,19 +19,24 @@ tCmdLineEntry g_psCmdTable[] = {{ "help", Cmd_help, " : format: help"},
 								{"set_laser", Cmd_set_laser , " : format: set_laser [int/ext] [laser_index] [dac_val]"},
 								{"get_current", Cmd_get_current , " : format: get_current [int/ext]"},
 								{"pd_get", Cmd_pd_get , " : format: pd_get [pd_index]"},
-								{"sp_set", Cmd_sample_set , " : format: sp_set [photo_index] [sampling_rate]"},
-								{"sp_trig", Cmd_sample_trig , " : format: sp_trig [num_samples]"},
+								{"sp_set_pd", Cmd_sample_set_pd , " : format: sp_set_pd [photo_index]"},
+								{"sp_set_rate", Cmd_sample_set_rate , " : format: sp_set_rate [sampling_rate] [num_samples]"},
+								{"sp_trig", Cmd_sample_trig , " : format: sp_trig"},
 								{"sp_status", Cmd_sample_status_get , " : format: sp_status"},
 								{"sp_get", Cmd_sample_get , " : format: sp_get [num_samples]"},
 								{"sp_get_c", Cmd_sample_get_char , " : format: sp_get_c [num_samples]"},
+								{"sp_get_buf", Cmd_sample_get_buf , " : format: sp_get_buf"},
+								{"sp_get_buf_c", Cmd_sample_get_buf_char , " : format: sp_get_buf_c"},
 								{0,0,0}
 								};
 
 volatile static	ringbuffer_t *p_CommandRingBuffer;
 static	char s_commandBuffer[COMMAND_MAX_LENGTH];
 static uint8_t	s_commandBufferIndex = 0;
+
 static uint8_t photo_index = 0;
 static uint32_t samp_rate = 0;
+
 
 void	command_init(void)
 {
@@ -308,46 +313,65 @@ int Cmd_pd_get(int argc, char *argv[])
 }
 
 
-//format: sp_set [photo_index] [sampling_rate]
-int Cmd_sample_set(int argc, char *argv[])
+//format: sp_set_pd [photo_index]
+int Cmd_sample_set_pd(int argc, char *argv[])
 {
-	if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
-	if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
+	if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
 
 	uint8_t pd_ind = atoi(argv[1]);
-	uint32_t sp_rate = atoi(argv[2]);
 
 	if((pd_ind < 1) || (pd_ind > 36)) return CMDLINE_INVALID_ARG;
-	if((sp_rate < 1) || (sp_rate > 330000)) return CMDLINE_INVALID_ARG;
 
 	SPI_SetDataLength(SPI2, LL_SPI_DATAWIDTH_8BIT);
 	SPI_SetPrescaler(SPI2, LL_SPI_BAUDRATEPRESCALER_DIV16);
 	ADG1414_Chain_SwitchOn(&photo_sw, pd_ind);
+	photo_index = pd_ind;
+	return CMDLINE_OK;
+}
+
+//format: sp_set_rate [sampling_rate] [num_samples]
+int Cmd_sample_set_rate(int argc, char *argv[])
+{
+	if (argc < 3) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 3) return CMDLINE_TOO_MANY_ARGS;
+
+	uint32_t sp_rate = atoi(argv[1]);
+	uint32_t num_sample = atoi(argv[2]);
+
+	if((sp_rate < 1) || (sp_rate > 330000)) return CMDLINE_INVALID_ARG;
+	if((num_sample < 1) || (num_sample > 50000)) return CMDLINE_INVALID_ARG;
 
 	uint32_t AutoReload = ROUND(1000000.0f / sp_rate) - 1;
 	LL_TIM_DisableIT_UPDATE(TIM1);
 	LL_TIM_DisableCounter(TIM1);
 	LL_TIM_SetAutoReload(TIM1, AutoReload);
 
-	photo_index = pd_ind;
+	adc_rec_total = num_sample;
 	samp_rate = sp_rate;
 	return CMDLINE_OK;
 }
 
-//format: sp_trig [num_samples]
+//format: sp_trig
 int Cmd_sample_trig(int argc, char *argv[])
 {
-	if (argc < 2) return CMDLINE_TOO_FEW_ARGS;
-	if (argc > 2) return CMDLINE_TOO_MANY_ARGS;
-	uint32_t num_sample = atoi(argv[1]);
+	if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
 
-	if((num_sample < 1) || (num_sample > 50000)) return CMDLINE_INVALID_ARG;
-
+	if (!adc_rec_total)
+	{
+		USART6_send_string("\r\nThe args: [num_samples] must be different from '0'");
+		return CMDLINE_INVALID_ARG;
+	}
+	if (!samp_rate)
+	{
+		USART6_send_string("\r\nThe args: [sampling_rate] must be different from '0'");
+		return CMDLINE_INVALID_ARG;
+	}
 	// Prepare to collect data
 	memset(adc_rec_buf, 0x00, adc_rec_total * 2);		//Clear pre buffer
 	adc_ptr = adc_rec_buf;
 	adc_rec_ind = 0;
-	adc_rec_total = num_sample;
 	SPI_SetDataLength(SPI2, LL_SPI_DATAWIDTH_16BIT);
 	SPI_SetPrescaler(SPI2, LL_SPI_BAUDRATEPRESCALER_DIV2);
 	// Start collect data
@@ -364,7 +388,7 @@ int Cmd_sample_status_get(int argc, char *argv[])
 	if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
 	if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
 
-	UARTprintf("\r\nPhoto: %d   Sampling_Rate: %d SPS", photo_index, samp_rate);
+	UARTprintf("\r\nPhoto: %d   Sampling_Rate: %d SPS   Num_Samples: %d S", photo_index, samp_rate, adc_rec_total);
 	if(adc_rec_ind == adc_rec_total)	USART6_send_string("\r\n-> ADC Data ready to get!");
 	else USART6_send_string("\r\n-> ADC Data is not ready!");
 	return CMDLINE_OK;
@@ -434,5 +458,63 @@ int Cmd_sample_get_char(int argc, char *argv[])
 	return CMDLINE_NOT_RETURN;
 }
 
+
+//format: sp_get_buf
+int Cmd_sample_get_buf(int argc, char *argv[])
+{
+	if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+	if (!adc_rec_ind)
+	{
+		USART6_send_string("\r\nPlease send cmd 'sp_trig' first!");
+		return CMDLINE_INVALID_ARG;
+	}
+	uint16_t crc_val = 0xffff;
+	uint8_t bytes_temp[3];
+
+	uint32_t header = (0x000FFFFF & adc_rec_total) | 0xFFF00000;
+	bytes_temp[0] = (uint8_t)(header >> 16);
+	bytes_temp[1] = (uint8_t)(header >> 8);
+	bytes_temp[2] = (uint8_t)header;
+	USART6_send_array((const char*)bytes_temp, 3);
+
+	for(uint32_t i = 0; i < adc_rec_total; i++)
+	{
+		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
+		bytes_temp[0] = adc_rec_buf[i] >> 8;
+		bytes_temp[1] = adc_rec_buf[i] & 0xFF;
+		USART6_send_array((const char*)bytes_temp, 2);
+	}
+	bytes_temp[0] = crc_val >> 8;
+	bytes_temp[1] = crc_val & 0xFF;
+	USART6_send_array((const char*)&bytes_temp, 2);
+	return CMDLINE_NOT_RETURN;
+}
+
+//format: sp_get_buf_c
+int Cmd_sample_get_buf_char(int argc, char *argv[])
+{
+	if (argc < 1) return CMDLINE_TOO_FEW_ARGS;
+	if (argc > 1) return CMDLINE_TOO_MANY_ARGS;
+	if (!adc_rec_ind)
+	{
+		USART6_send_string("Please send cmd 'sp_trig' first!");
+		return CMDLINE_INVALID_ARG;
+	}
+	uint16_t crc_val = 0xffff;
+
+	char ascii_buf[5];
+	USART6_send_string("\r\n");
+	for(uint32_t i = 0; i < adc_rec_total; i++)
+	{
+		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
+		htoa(adc_rec_buf[i], ascii_buf);
+		USART6_send_array(ascii_buf, 5);
+	}
+
+	htoa(crc_val, ascii_buf);
+	USART6_send_array(ascii_buf, 5);
+	return CMDLINE_NOT_RETURN;
+}
 
 
