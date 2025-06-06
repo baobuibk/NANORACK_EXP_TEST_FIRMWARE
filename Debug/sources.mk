@@ -33,6 +33,7 @@ Source/ADS8327 \
 Source/CMDLine \
 Source/FRAM \
 Source/MCP4902 \
+Source/NTC \
 Source/UART \
 Source/scheduler \
 

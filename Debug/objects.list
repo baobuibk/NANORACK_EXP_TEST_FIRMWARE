@@ -20,6 +20,7 @@
 "./Source/CMDLine/command.o"
 "./Source/FRAM/fram.o"
 "./Source/MCP4902/mcp4902.o"
+"./Source/NTC/ntc.o"
 "./Source/UART/RingBuffer.o"
 "./Source/UART/UART.o"
 "./Source/scheduler/scheduler.o"

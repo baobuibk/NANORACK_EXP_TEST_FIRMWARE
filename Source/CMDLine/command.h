@@ -35,6 +35,7 @@ int Cmd_sample_trig(int argc, char *argv[]);
 int Cmd_sample_status_get(int argc, char *argv[]);
 int Cmd_sample_get(int argc, char *argv[]);
 int Cmd_sample_get_char(int argc, char *argv[]);
+int Cmd_get_temp(int argc, char *argv[]);
 int Cmd_sample_get_buf(int argc, char *argv[]);
 int Cmd_sample_get_buf_char(int argc, char *argv[]);
 

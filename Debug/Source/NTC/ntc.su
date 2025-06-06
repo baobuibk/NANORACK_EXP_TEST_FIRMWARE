@@ -1,0 +1,2 @@
+../Source/NTC/ntc.c:18:7:ntc_convertToC	32	static
+../Source/NTC/ntc.c:32:9:ntc_convertToC_100times	16	static

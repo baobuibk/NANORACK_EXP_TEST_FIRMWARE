@@ -1,6 +1,5 @@
-Source/CMDLine/command.o: ../Source/CMDLine/command.c \
- D:/WorkSpace/STM32\ PRJ/EXP_test/Source/scheduler/scheduler.h \
- D:/WorkSpace/STM32\ PRJ/EXP_test/Source/NTC/ntc.h ../Core/Inc/main.h \
+Source/NTC/ntc.o: ../Source/NTC/ntc.c ../Source/NTC/ntc.h \
+ ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_adc.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h \
  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h \
@@ -25,13 +24,8 @@ Source/CMDLine/command.o: ../Source/CMDLine/command.c \
  D:/WorkSpace/STM32\ PRJ/EXP_test/Source/ADG1414/adg1414.h \
  D:/WorkSpace/STM32\ PRJ/EXP_test/Source/MCP4902/mcp4902.h \
  D:/WorkSpace/STM32\ PRJ/EXP_test/Source/ADC_DMA_Device/adc_dma_device.h \
- D:/WorkSpace/STM32\ PRJ/EXP_test/Source/ADS8327/ads8327.h \
- ../Source/CMDLine/command.h ../Source/CMDLine/cmdline.h \
- D:/WorkSpace/STM32\ PRJ/EXP_test/Source/UART/UART.h \
- D:/WorkSpace/STM32\ PRJ/EXP_test/Source/UART/RingBuffer.h \
- ../Drivers/CMSIS/Include/cmsis_gcc.h
-D:/WorkSpace/STM32\ PRJ/EXP_test/Source/scheduler/scheduler.h:
-D:/WorkSpace/STM32\ PRJ/EXP_test/Source/NTC/ntc.h:
+ D:/WorkSpace/STM32\ PRJ/EXP_test/Source/ADS8327/ads8327.h
+../Source/NTC/ntc.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_ll_adc.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
@@ -58,8 +52,3 @@ D:/WorkSpace/STM32\ PRJ/EXP_test/Source/ADG1414/adg1414.h:
 D:/WorkSpace/STM32\ PRJ/EXP_test/Source/MCP4902/mcp4902.h:
 D:/WorkSpace/STM32\ PRJ/EXP_test/Source/ADC_DMA_Device/adc_dma_device.h:
 D:/WorkSpace/STM32\ PRJ/EXP_test/Source/ADS8327/ads8327.h:
-../Source/CMDLine/command.h:
-../Source/CMDLine/cmdline.h:
-D:/WorkSpace/STM32\ PRJ/EXP_test/Source/UART/UART.h:
-D:/WorkSpace/STM32\ PRJ/EXP_test/Source/UART/RingBuffer.h:
-../Drivers/CMSIS/Include/cmsis_gcc.h:

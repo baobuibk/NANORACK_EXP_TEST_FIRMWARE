@@ -5,6 +5,7 @@
  *  Author: Admin
  */ 
 #include "scheduler.h"
+#include "ntc.h"
 #include "command.h"
 #include "UART.h"
 #include <stdlib.h>
@@ -25,6 +26,8 @@ tCmdLineEntry g_psCmdTable[] = {{ "help", Cmd_help, " : format: help"},
 								{"sp_status", Cmd_sample_status_get , " : format: sp_status"},
 								{"sp_get", Cmd_sample_get , " : format: sp_get [num_samples]"},
 								{"sp_get_c", Cmd_sample_get_char , " : format: sp_get_c [num_samples]"},
+								{"get_temp", Cmd_get_temp , " : format: get_temp"},
+
 								{"sp_get_buf", Cmd_sample_get_buf , " : format: sp_get_buf"},
 								{"sp_get_buf_c", Cmd_sample_get_buf_char , " : format: sp_get_buf_c"},
 								{0,0,0}
@@ -280,13 +283,13 @@ int Cmd_get_current(int argc, char *argv[])
 	if(!strcmp(argv[1], "int"))
 	{
 		USART6_send_string("\r\nCurrent int: ");
-		data_temp = cur_cal(laser_adc.ADC_Data[0]);
+		data_temp = cur_cal(mcu_adc.ADC_Data[0]);
 		UARTprintf("%s mA",ftoa((float)data_temp, buf, 2));
 	}
 	else if(!strcmp(argv[1], "ext"))
 	{
 		USART6_send_string("\r\nCurrent ext: ");
-		data_temp = cur_cal(laser_adc.ADC_Data[1]);
+		data_temp = cur_cal(mcu_adc.ADC_Data[1]);
 		UARTprintf("%s mA",ftoa((float)data_temp, buf, 2));
 	}
 	else return CMDLINE_INVALID_ARG;
@@ -347,7 +350,7 @@ int Cmd_sample_set_rate(int argc, char *argv[])
 	LL_TIM_DisableCounter(TIM1);
 	LL_TIM_SetAutoReload(TIM1, AutoReload);
 
-	adc_rec_total = num_sample;
+	adc_rec_total = num_sample + 3;
 	samp_rate = sp_rate;
 	return CMDLINE_OK;
 }
@@ -418,9 +421,9 @@ int Cmd_sample_get(int argc, char *argv[])
 
 	for(uint32_t i = 0; i < num_sample; i++)
 	{
-		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
-		bytes_temp[0] = adc_rec_buf[i] >> 8;
-		bytes_temp[1] = adc_rec_buf[i] & 0xFF;
+		crc16_CCITT_update(&crc_val, adc_rec_buf[i+3]);
+		bytes_temp[0] = adc_rec_buf[i+3] >> 8;
+		bytes_temp[1] = adc_rec_buf[i+3] & 0xFF;
 		USART6_send_array((const char*)bytes_temp, 2);
 	}
 	bytes_temp[0] = crc_val >> 8;
@@ -448,8 +451,8 @@ int Cmd_sample_get_char(int argc, char *argv[])
 	USART6_send_string("\r\n");
 	for(uint32_t i = 0; i < num_sample; i++)
 	{
-		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
-		htoa(adc_rec_buf[i], ascii_buf);
+		crc16_CCITT_update(&crc_val, adc_rec_buf[i+3]);
+		htoa(adc_rec_buf[i+3], ascii_buf);
 		USART6_send_array(ascii_buf, 5);
 	}
 
@@ -458,6 +461,25 @@ int Cmd_sample_get_char(int argc, char *argv[])
 	return CMDLINE_NOT_RETURN;
 }
 
+//format: get_temp
+int Cmd_get_temp(int argc, char *argv[])
+{
+	char buf[10];
+
+	for(uint8_t i = 0; i < 8; i++)
+	{
+		if(mcu_adc.ADC_Data[i+2] < 10)
+		{
+			UARTprintf("\r\n NTC[%d]: ERROR", i);
+		}
+		else
+		{
+			float temp = ntc_convertToC(mcu_adc.ADC_Data[i+2]);
+			UARTprintf("\r\n NTC[%d]: %s C", i, ftoa((float)temp, buf, 2));
+		}
+	}
+	return CMDLINE_OK;
+}
 
 //format: sp_get_buf
 int Cmd_sample_get_buf(int argc, char *argv[])
@@ -480,9 +502,9 @@ int Cmd_sample_get_buf(int argc, char *argv[])
 
 	for(uint32_t i = 0; i < adc_rec_total; i++)
 	{
-		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
-		bytes_temp[0] = adc_rec_buf[i] >> 8;
-		bytes_temp[1] = adc_rec_buf[i] & 0xFF;
+		crc16_CCITT_update(&crc_val, adc_rec_buf[i+3]);
+		bytes_temp[0] = adc_rec_buf[i+3] >> 8;
+		bytes_temp[1] = adc_rec_buf[i+3] & 0xFF;
 		USART6_send_array((const char*)bytes_temp, 2);
 	}
 	bytes_temp[0] = crc_val >> 8;
@@ -507,8 +529,8 @@ int Cmd_sample_get_buf_char(int argc, char *argv[])
 	USART6_send_string("\r\n");
 	for(uint32_t i = 0; i < adc_rec_total; i++)
 	{
-		crc16_CCITT_update(&crc_val, adc_rec_buf[i]);
-		htoa(adc_rec_buf[i], ascii_buf);
+		crc16_CCITT_update(&crc_val, adc_rec_buf[i+3]);
+		htoa(adc_rec_buf[i+3], ascii_buf);
 		USART6_send_array(ascii_buf, 5);
 	}
 

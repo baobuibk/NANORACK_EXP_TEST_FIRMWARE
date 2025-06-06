@@ -49,7 +49,7 @@ uint32_t adc_rec_total = 0;
 MCP4902_Device_t DAC_device;
 ADG1414_Device_t laser_int;
 ADG1414_Device_t laser_ext;
-ADC_DMA_Device_t laser_adc;
+ADC_DMA_Device_t mcu_adc;
 ADG1414_Device_t photo_sw;
 ADS8327_Device_t photo_adc;
 /* USER CODE END PV */
@@ -149,7 +149,7 @@ int main(void)
   ADG1414_Chain_Init(&laser_int, SPI1, ADG1414_INT_CS_GPIO_Port, ADG1414_INT_CS_Pin, INTERNAL_CHAIN_SWITCH_NUM);
   ADG1414_Chain_Init(&laser_ext, SPI1, ADG1414_EXT_CS_GPIO_Port, ADG1414_EXT_CS_Pin, EXTERNAL_CHAIN_SWITCH_NUM);
 
-  ADC_DMA_Init(&laser_adc, ADC1, DMA2, LL_DMA_STREAM_0, 2);
+  ADC_DMA_Init(&mcu_adc, ADC1, DMA2, LL_DMA_STREAM_0, 10);
 
   ADG1414_Chain_Init(&photo_sw, SPI2, PD_SW_CS_GPIO_Port, PD_SW_CS_Pin, INTERNAL_CHAIN_SWITCH_NUM);
   ADS8327_Device_Init(&photo_adc, SPI2, PD_ADC_CS_GPIO_Port, PD_ADC_CS_Pin, PD_ADC_CV_GPIO_Port, PD_ADC_CV_Pin, PD_ADC_EOC_GPIO_Port, PD_ADC_EOC_Pin);
@@ -237,15 +237,36 @@ static void MX_ADC1_Init(void)
   /* Peripheral clock enable */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
 
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
   /**ADC1 GPIO Configuration
+  PC0   ------> ADC1_IN10
+  PC1   ------> ADC1_IN11
+  PC2   ------> ADC1_IN12
+  PC3   ------> ADC1_IN13
   PA2   ------> ADC1_IN2
   PA3   ------> ADC1_IN3
+  PC4   ------> ADC1_IN14
+  PC5   ------> ADC1_IN15
+  PB0   ------> ADC1_IN8
+  PB1   ------> ADC1_IN9
   */
+  GPIO_InitStruct.Pin = ADC_TEMP_1_Pin|ADC_TEMP_2_Pin|ADC_TEMP_3_Pin|ADC_TEMP_4_Pin
+                          |ADC_TEMP_5_Pin|ADC_TEMP_6_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   GPIO_InitStruct.Pin = ADC_INT_Pin|ADC_EXT_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = ADC_TEMP_7_Pin|ADC_TEMP_8_Pin;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* ADC1 DMA Init */
 
@@ -279,7 +300,7 @@ static void MX_ADC1_Init(void)
   ADC_InitStruct.SequencersScanMode = LL_ADC_SEQ_SCAN_ENABLE;
   LL_ADC_Init(ADC1, &ADC_InitStruct);
   ADC_REG_InitStruct.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;
-  ADC_REG_InitStruct.SequencerLength = LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS;
+  ADC_REG_InitStruct.SequencerLength = LL_ADC_REG_SEQ_SCAN_ENABLE_10RANKS;
   ADC_REG_InitStruct.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;
   ADC_REG_InitStruct.ContinuousMode = LL_ADC_REG_CONV_CONTINUOUS;
   ADC_REG_InitStruct.DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED;
@@ -298,6 +319,46 @@ static void MX_ADC1_Init(void)
   */
   LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_2, LL_ADC_CHANNEL_3);
   LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_3, LL_ADC_SAMPLINGTIME_15CYCLES);
+
+  /** Configure Regular Channel
+  */
+  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_3, LL_ADC_CHANNEL_10);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_10, LL_ADC_SAMPLINGTIME_15CYCLES);
+
+  /** Configure Regular Channel
+  */
+  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_4, LL_ADC_CHANNEL_11);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_11, LL_ADC_SAMPLINGTIME_15CYCLES);
+
+  /** Configure Regular Channel
+  */
+  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_5, LL_ADC_CHANNEL_12);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_12, LL_ADC_SAMPLINGTIME_15CYCLES);
+
+  /** Configure Regular Channel
+  */
+  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_6, LL_ADC_CHANNEL_13);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_13, LL_ADC_SAMPLINGTIME_15CYCLES);
+
+  /** Configure Regular Channel
+  */
+  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_7, LL_ADC_CHANNEL_14);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_14, LL_ADC_SAMPLINGTIME_15CYCLES);
+
+  /** Configure Regular Channel
+  */
+  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_8, LL_ADC_CHANNEL_15);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_15, LL_ADC_SAMPLINGTIME_15CYCLES);
+
+  /** Configure Regular Channel
+  */
+  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_9, LL_ADC_CHANNEL_8);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_8, LL_ADC_SAMPLINGTIME_15CYCLES);
+
+  /** Configure Regular Channel
+  */
+  LL_ADC_REG_SetSequencerRanks(ADC1, LL_ADC_REG_RANK_10, LL_ADC_CHANNEL_9);
+  LL_ADC_SetChannelSamplingTime(ADC1, LL_ADC_CHANNEL_9, LL_ADC_SAMPLINGTIME_15CYCLES);
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
@@ -598,11 +659,11 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOH);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOE);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOE);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
 
   /**/
   LL_GPIO_SetOutputPin(GPIOE, STATUS_LED_Pin|MCP4902_CS_Pin|ADG1414_EXT_CS_Pin|ADG1414_INT_CS_Pin

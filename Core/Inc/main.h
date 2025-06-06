@@ -63,7 +63,7 @@ extern uint32_t adc_rec_total;
 extern MCP4902_Device_t DAC_device;
 extern ADG1414_Device_t laser_int;
 extern ADG1414_Device_t laser_ext;
-extern ADC_DMA_Device_t laser_adc;
+extern ADC_DMA_Device_t mcu_adc;
 extern ADG1414_Device_t photo_sw;
 extern ADS8327_Device_t photo_adc;
 /* USER CODE END ET */
@@ -86,10 +86,26 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define ADC_TEMP_1_Pin LL_GPIO_PIN_0
+#define ADC_TEMP_1_GPIO_Port GPIOC
+#define ADC_TEMP_2_Pin LL_GPIO_PIN_1
+#define ADC_TEMP_2_GPIO_Port GPIOC
+#define ADC_TEMP_3_Pin LL_GPIO_PIN_2
+#define ADC_TEMP_3_GPIO_Port GPIOC
+#define ADC_TEMP_4_Pin LL_GPIO_PIN_3
+#define ADC_TEMP_4_GPIO_Port GPIOC
 #define ADC_INT_Pin LL_GPIO_PIN_2
 #define ADC_INT_GPIO_Port GPIOA
 #define ADC_EXT_Pin LL_GPIO_PIN_3
 #define ADC_EXT_GPIO_Port GPIOA
+#define ADC_TEMP_5_Pin LL_GPIO_PIN_4
+#define ADC_TEMP_5_GPIO_Port GPIOC
+#define ADC_TEMP_6_Pin LL_GPIO_PIN_5
+#define ADC_TEMP_6_GPIO_Port GPIOC
+#define ADC_TEMP_7_Pin LL_GPIO_PIN_0
+#define ADC_TEMP_7_GPIO_Port GPIOB
+#define ADC_TEMP_8_Pin LL_GPIO_PIN_1
+#define ADC_TEMP_8_GPIO_Port GPIOB
 #define STATUS_LED_Pin LL_GPIO_PIN_11
 #define STATUS_LED_GPIO_Port GPIOE
 #define MCP4902_CS_Pin LL_GPIO_PIN_12
